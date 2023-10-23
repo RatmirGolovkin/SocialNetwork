@@ -9,7 +9,10 @@ import { UpdatePasswordDto } from '../dto/user-dto/update-password.dto';
 import { UpdateDto } from '../dto/user-dto/update-user.dto';
 import { LoginDto } from '../dto/user-dto/user-login.dto';
 import { Post } from 'src/post/schema/post.schema';
-import { Sub } from 'src/sub/schema/sub.schema';
+import { Subscription } from 'src/sub/schema/subscription.schema';
+import { UserPosts } from './schema/user-posts.schema';
+import { Subscriber } from 'src/sub/schema/subscriber.schema';
+import { UpdateEmailDto } from 'src/dto/user-dto/update-email.dto';
 
 @Injectable()
 export class UserService {
@@ -18,8 +21,12 @@ export class UserService {
     private readonly userModel: Model<User>,
     @InjectModel(Post.name)
     private readonly postModule: Model<Post>,
-    @InjectModel(Sub.name)
-    private readonly subModel: Model<Sub>,
+    @InjectModel(Subscription.name)
+    private readonly subscriptionModel: Model<Subscription>,
+    @InjectModel(UserPosts.name)
+    private readonly userPostsModel: Model<UserPosts>,
+    @InjectModel(Subscriber.name)
+    private readonly subsriberModel: Model<Subscriber>,
     private jwtService: JwtService,
   ) {}
 
@@ -40,23 +47,44 @@ export class UserService {
     return request;
   }
 
-  // Get Posts //
-  async getPosts(req) {
+  // Get user posts //
+  async getUserPosts(req) {
     const findUser = await this.userModel.findOne({ _id: req.user.id });
 
     if (!findUser) {
-      return 'This user is not found';
+      return 'User does not found!';
     }
+
+    const findPost = await this.userPostsModel.findOne({ userId: findUser.id });
+
+    if (findPost.postsValue === 0) {
+      return 'This user dont have posts';
+    }
+
+    return {
+      userName: findUser.name,
+      login: findUser.login,
+      postsValue: findPost.postsValue,
+      posts: findPost.posts,
+    };
   }
 
   // Register //
   async register(registerDto: RegisterDto) {
-    const existedUser = await this.userModel.findOne({
+    const existedUserEmail = await this.userModel.findOne({
       email: registerDto.email,
     });
 
-    if (existedUser) {
-      return `This email ${existedUser.email}, alredy in use!`;
+    if (existedUserEmail) {
+      return `This email ${existedUserEmail.email}, alredy in use!`;
+    }
+
+    const existedUserLogin = await this.userModel.findOne({
+      login: registerDto.login,
+    });
+
+    if (existedUserLogin) {
+      return `This login ${existedUserLogin.login}, alrady in use!`;
     }
 
     const hash = bcrypt.hashSync(registerDto.password, 10);
@@ -64,14 +92,31 @@ export class UserService {
 
     const createUser = await this.userModel.create(registerDto);
 
+    const userPosts = {
+      userName: registerDto.name,
+      userId: createUser.id,
+      postsValue: 0,
+      posts: [],
+    };
+
+    await this.userPostsModel.create(userPosts);
+
     const sub = {
       userName: createUser.name,
       userId: createUser.id,
       subscription: [],
-      subscriber: [],
     };
 
-    await this.subModel.create(sub);
+    await this.subscriptionModel.create(sub);
+
+    const subscribers = {
+      userName: registerDto.name,
+      userId: createUser.id,
+      subscribers: [],
+      subscriberValue: 0,
+    };
+
+    await this.subsriberModel.create(subscribers);
 
     const response = {
       name: createUser.name,
@@ -161,6 +206,42 @@ export class UserService {
       name: update.name,
       email: update.email,
       password: hashNewPassword,
+    };
+
+    return response;
+  }
+
+  // Change Email //
+  async updateUserEmail(updateEmailDto: UpdateEmailDto, req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
+
+    if (!findUser) {
+      return 'User not found!';
+    }
+
+    if (findUser.email === updateEmailDto.newEmail) {
+      return 'Error.Email';
+    }
+
+    const findExistedEmail = await this.userModel.findOne({
+      email: updateEmailDto.newEmail,
+    });
+
+    if (findExistedEmail) {
+      return 'This email already in use!';
+    }
+
+    const updateEmail = await this.userModel.findByIdAndUpdate(
+      { _id: findUser.id },
+      { email: updateEmailDto.newEmail },
+      { new: true, upsert: true },
+    );
+
+    const response = {
+      message: `The user: '${updateEmail.login}', successfully updated!`,
+      name: updateEmail.name,
+      login: updateEmail.login,
+      email: updateEmail.email,
     };
 
     return response;

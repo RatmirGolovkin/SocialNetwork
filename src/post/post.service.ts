@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { CreatePostDto } from '../dto/post-dto/create-post.dto';
 import { User } from 'src/user/schema/user.schema';
 import { UpdatePostDto } from 'src/dto/post-dto/update-post.dto';
+import { UserPosts } from 'src/user/schema/user-posts.schema';
 
 @Injectable()
 export class PostService {
@@ -13,6 +14,8 @@ export class PostService {
     private readonly postModel: Model<Post>,
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
+    @InjectModel(UserPosts.name)
+    private readonly userPostsModel: Model<UserPosts>,
   ) {}
 
   // Get all //
@@ -34,11 +37,35 @@ export class PostService {
       return 'This name already in use';
     }
 
-    return await this.postModel.create({
+    const findUserPosts = await this.userPostsModel.findOne({
+      userId: findUser.id,
+    });
+
+    if (!findUserPosts) {
+      return 'Schema does not found!';
+    }
+
+    await this.postModel.create({
       name: createPost.name,
       userId: req.user.id,
       text: createPost.text,
     });
+
+    const updateUserPosts = await this.postModel.find({ userId: findUser.id });
+
+    if (updateUserPosts.length > 0) {
+      await this.userPostsModel.findOneAndUpdate(
+        { userId: findUser.id },
+        { posts: updateUserPosts, postsValue: updateUserPosts.length },
+        { upsert: true, new: true },
+      );
+    }
+
+    return {
+      name: createPost.name,
+      userId: req.user.id,
+      text: createPost.text,
+    };
   }
 
   // Update post //

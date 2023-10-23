@@ -20,7 +20,7 @@ export class SubController {
     return this.subService.getAllSubscriptions(req);
   }
 
-  // Post //
+  // get subscribe //
   @UseGuards(UserGuard)
   @Post(':id')
   subscribe(@Param('id') id: string, @Request() req) {

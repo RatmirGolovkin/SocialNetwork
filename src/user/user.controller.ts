@@ -16,6 +16,7 @@ import { UpdateDto } from '../dto/user-dto/update-user.dto';
 import { LoginDto } from '../dto/user-dto/user-login.dto';
 import { RegisterDto } from '../dto/user-dto/user-register.dto';
 import { UserGuard } from '../guards/user.guard';
+import { UpdateEmailDto } from 'src/dto/user-dto/update-email.dto';
 
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
 @Controller('user')
@@ -29,11 +30,11 @@ export class UserController {
     return this.userServise.getOne(req);
   }
 
-  // Get User Posts //
+  // Get User posts //
   @UseGuards(UserGuard)
-  @Get('get/posts')
-  getPosts(@Request() req) {
-    return this.userServise.getPosts(req);
+  @Get('posts')
+  getUserPosts(@Request() req) {
+    return this.userServise.getUserPosts(req);
   }
 
   // Register //
@@ -52,6 +53,13 @@ export class UserController {
   @Put('update/password')
   updateUserPassword(@Body() updatePassword: UpdatePasswordDto) {
     return this.userServise.updateUserPassword(updatePassword);
+  }
+
+  // Change email //
+  @UseGuards(UserGuard)
+  @Put('update/email')
+  updateUserEmail(@Body() updateEmailDto: UpdateEmailDto, @Request() req) {
+    return this.userServise.updateUserEmail(updateEmailDto, req);
   }
 
   // Update user //

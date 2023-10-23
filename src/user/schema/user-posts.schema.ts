@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
-export class Sub {
+export class UserPosts {
   @Prop()
   userName: string;
 
@@ -9,10 +9,10 @@ export class Sub {
   userId: string;
 
   @Prop()
-  subscription: [string];
+  postsValue: number;
 
   @Prop()
-  subscriber: [string];
+  posts: [string];
 }
 
-export const subSchema = SchemaFactory.createForClass(Sub);
+export const userPostsSchema = SchemaFactory.createForClass(UserPosts);

@@ -19,7 +19,7 @@ import { UpdatePostDto } from 'src/dto/post-dto/update-post.dto';
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
-  // Get All //
+  // Get All//
   @UseGuards(UserGuard)
   @Get('all')
   getAllPosts(@Req() req) {
