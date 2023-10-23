@@ -19,9 +19,46 @@ export class SubService {
     private readonly subscriberModel: Model<Subscriber>,
   ) {}
 
-  // Get subs //
+  // Get subscriptions //
   async getAllSubscriptions(req) {
-    console.log(req);
+    const findSubscriptions = await this.subscriptionModel.findOne({
+      userId: req.user.id,
+    });
+
+    if (!findSubscriptions) {
+      return 'User not found!';
+    }
+
+    const subscriptoins = findSubscriptions.subscription;
+
+    if (subscriptoins.length <= 0) {
+      return '0';
+    }
+
+    return {
+      subscriptions: subscriptoins,
+      subscriptionsValue: subscriptoins.length,
+    };
+  }
+
+  // Get subscribers //
+  async getAllSubscribers(req) {
+    const findSubscribers = await this.subscriberModel.findOne({
+      userId: req.user.id,
+    });
+
+    if (!findSubscribers) {
+      return 'User not found!';
+    }
+
+    if (findSubscribers.subscriberValue === 0) {
+      return '0';
+    }
+
+    return {
+      subscribers: findSubscribers.subscribers,
+      subscribersValue: findSubscribers.subscriberValue,
+    };
   }
 
   // Subscribe //
@@ -93,5 +130,25 @@ export class SubService {
       subscription: updateSubscriptionSchema,
       subscriber: updateSubscriberSchema,
     };
+  }
+
+  // Unsubscribe
+  async unsubscribe(id: string, req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
+
+    if (!findUser) {
+      return 'User not found';
+    }
+
+    const findSubscriberSchema = await this.subscriberModel.findOne({
+      userId: findUser.id,
+    });
+
+    const subsciberArr = findSubscriberSchema.subscribers;
+
+    if (subsciberArr.length <= 0) {
+      return 'Error: not found subscribe';
+    }
+    // deleted user in subscription and subscribers
   }
 }
