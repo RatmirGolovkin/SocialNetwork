@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Post } from 'src/post/schema/post.schema';
-import { User } from 'src/user/schema/user.schema';
-import { Subscription } from './schema/subscription.schema';
-import { Subscriber } from './schema/subscriber.schema';
+import { Post } from 'src/shemas/post.schema';
+import { Subscriber } from 'src/shemas/subscriber.schema';
+import { Subscription } from 'src/shemas/subscription.schema';
+import { User } from 'src/shemas/user.schema';
 
 @Injectable()
 export class SubService {
@@ -19,136 +19,193 @@ export class SubService {
     private readonly subscriberModel: Model<Subscriber>,
   ) {}
 
-  // Get subscriptions //
-  async getAllSubscriptions(req) {
-    const findSubscriptions = await this.subscriptionModel.findOne({
-      userId: req.user.id,
-    });
-
-    if (!findSubscriptions) {
-      return 'User not found!';
-    }
-
-    const subscriptoins = findSubscriptions.subscription;
-
-    if (subscriptoins.length <= 0) {
-      return '0';
-    }
-
-    return {
-      subscriptions: subscriptoins,
-      subscriptionsValue: subscriptoins.length,
-    };
-  }
-
-  // Get subscribers //
-  async getAllSubscribers(req) {
-    const findSubscribers = await this.subscriberModel.findOne({
-      userId: req.user.id,
-    });
-
-    if (!findSubscribers) {
-      return 'User not found!';
-    }
-
-    if (findSubscribers.subscriberValue === 0) {
-      return '0';
-    }
-
-    return {
-      subscribers: findSubscribers.subscribers,
-      subscribersValue: findSubscribers.subscriberValue,
-    };
-  }
-
-  // Subscribe //
-  async subscribe(id: string, req) {
+  // Get all //
+  async getAll(req) {
     const findUser = await this.userModel.findOne({ _id: req.user.id });
 
     if (!findUser) {
       return 'User not found!';
     }
 
-    const findSubUser = await this.userModel.findOne({ _id: id });
-
-    if (!findSubUser) {
-      return 'Sub user not found!';
-    }
-
-    // Subscription
-
-    const findSchema = await this.subscriptionModel.findOne({
+    const findSubsrcibers = await this.subscriberModel.findOne({
       userId: findUser.id,
     });
 
-    const subscriptionArr = findSchema.subscription;
-
-    if (subscriptionArr.length > 0) {
-      for ({ userId: id } of subscriptionArr) {
-        return 'You already subscribe to this user!';
-      }
+    if (!findSubsrcibers) {
+      return 'Error: Something happened with "Subscriber schema"!';
     }
 
-    const subscription = {
-      userName: findSubUser.name,
-      userId: id,
-    };
-
-    subscriptionArr.push(subscription);
-
-    const updateSubscriptionSchema =
-      await this.subscriptionModel.findOneAndUpdate(
-        { userId: findUser.id },
-        { subscription: subscriptionArr },
-        { new: true, upsert: true },
-      );
-    //
-
-    // Subscriber //
-    const findSubscriberSchema = await this.subscriberModel.findOne({
-      userId: id,
+    const findSubscription = await this.subscriptionModel.findOne({
+      userId: findUser.id,
     });
 
-    const subscriberArr = findSubscriberSchema.subscribers;
+    if (!findSubscription) {
+      return 'Error: Something happened with "Subscription schema"!';
+    }
 
-    const subsciber = {
-      userName: findUser.name,
-      userId: findUser.id,
-    };
+    const subscription = findSubscription.subscription;
 
-    subscriberArr.push(subsciber);
+    const subscribers = findSubsrcibers.subscribers;
 
-    const updateSubscriberSchema = await this.subscriberModel.findOneAndUpdate(
-      { userId: id },
-      { subscribers: subscriberArr, subscriberValue: subscriberArr.length },
-      { new: true, upsert: true },
-    );
-    //
+    const subscribersValue = subscribers.length;
+
+    const subscriptionsValue = subscription.length;
 
     return {
-      message: 'Subscribe!',
-      subscription: updateSubscriptionSchema,
-      subscriber: updateSubscriberSchema,
+      user: findUser.name,
+      subscribersValue: subscribersValue,
+      subscriptionsValue: subscriptionsValue,
+      subscribers: subscribers,
+      subscription: subscription,
     };
   }
 
-  // Unsubscribe
-  async unsubscribe(id: string, req) {
+  // Post subscribe //
+  async subscribe(id: string, req) {
+    if (id === req.user.id) {
+      return 'You cant subscribe on this user!';
+    }
+
     const findUser = await this.userModel.findOne({ _id: req.user.id });
 
     if (!findUser) {
       return 'User not found';
     }
 
-    const findSubscriberSchema = await this.subscriberModel.findOne({
+    const findSubsUser = await this.userModel.findOne({ _id: id });
+
+    if (!findSubsUser) {
+      return 'This user is not exist!';
+    }
+
+    const findSubscriptionSchema = await this.subscriptionModel.findOne({
       userId: findUser.id,
     });
 
-    const subsciberArr = findSubscriberSchema.subscribers;
-
-    if (subsciberArr.length <= 0) {
-      return 'Error: not found subscribe';
+    if (!findSubscriptionSchema) {
+      return 'Error: Something happened with "Subscription schema"!';
     }
-    // deleted user in subscription and subscribers
+
+    const subscriptionsArr = findSubscriptionSchema.subscription;
+
+    const findExistSubs = subscriptionsArr.find(
+      (subscriptionsArr) => subscriptionsArr.userId === findSubsUser.id,
+    );
+
+    if (findExistSubs) {
+      return 'Already subscribe!';
+    }
+
+    const updatedSubscriptionData = {
+      userName: findSubsUser.name,
+      userId: findSubsUser.id,
+    };
+
+    await this.subscriptionModel.findOneAndUpdate(
+      { userId: findUser.id },
+      { subscription: updatedSubscriptionData },
+      { new: true, upsert: true },
+    );
+
+    const findSubscriberSchema = await this.subscriberModel.findOne({
+      userId: findSubsUser.id,
+    });
+
+    const subscriberArr = findSubscriberSchema.subscribers;
+
+    const findExistSubscriber = subscriberArr.find(
+      (subscriberArr) => subscriberArr.userId === findUser.id,
+    );
+
+    if (findExistSubscriber) {
+      return 'Already subscribe!';
+    }
+
+    const updatedSubscriberData = {
+      userName: findUser.name,
+      userId: findUser.id,
+    };
+
+    subscriberArr.push(updatedSubscriberData);
+
+    await this.subscriberModel.findOneAndUpdate(
+      { userId: findSubsUser.id },
+      {
+        subscribers: subscriberArr,
+        subscriberValue: subscriberArr.length,
+      },
+      { new: true, upsert: true },
+    );
+
+    return { message: 'Succsses!' };
+  }
+
+  // Unsubscribe //
+  async unsubscribe(id: string, req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
+
+    if (!findUser) {
+      return 'User not found!';
+    }
+
+    const findUnsubUser = await this.userModel.findOne({ _id: id });
+
+    if (!findUnsubUser) {
+      return 'This unsubscribed user is not found!';
+    }
+
+    const findSubscriptionSchema = await this.subscriptionModel.findOne({
+      userId: findUser.id,
+    });
+
+    if (!findSubscriptionSchema) {
+      return 'Error: Something happened with "Subscription schema"!';
+    }
+
+    const subscriptionArr = findSubscriptionSchema.subscription;
+
+    const findUnsabSubscription = subscriptionArr.findIndex(
+      (subscriptionArr) => subscriptionArr.userId === findUnsubUser.id,
+    );
+
+    const findSubscriberSchema = await this.subscriberModel.findOne({
+      userId: findUnsubUser.id,
+    });
+
+    if (!findSubscriberSchema) {
+      return 'Error: Something happened with "Subscriber schema"!';
+    }
+
+    const subscriberArr = findSubscriberSchema.subscribers;
+
+    const findUnsabSubscriber = subscriberArr.findIndex(
+      (subscriberArr) => subscriberArr.userId === findUser.id,
+    );
+
+    if (findUnsabSubscriber && findUnsabSubscription < 0) {
+      return 'Error: you are not subscribed';
+    }
+
+    // Deleted subscription //
+    subscriptionArr.splice(findUnsabSubscription, 1);
+
+    // Delete subscriber //
+    subscriberArr.splice(findUnsabSubscriber, 1);
+
+    await this.subscriptionModel.findOneAndUpdate(
+      { userId: findUser.id },
+      { subscription: subscriptionArr },
+      { upsert: true, new: true },
+    );
+
+    await this.subscriberModel.findOneAndUpdate(
+      { userId: findUnsubUser.id },
+      { subscribers: subscriberArr, subscriberValue: subscriberArr.length },
+      { upsert: true, new: true },
+    );
+
+    return {
+      message: 'Succsess!',
+    };
   }
 }

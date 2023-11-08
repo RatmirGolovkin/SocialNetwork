@@ -1,19 +1,20 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
-  Param,
   Post,
   Put,
   Req,
-  Request,
   UseGuards,
+  Request,
+  Param,
+  Delete,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { UserGuard } from '../guards/user.guard';
 import { CreatePostDto } from '../dto/post-dto/create-post.dto';
 import { UpdatePostDto } from 'src/dto/post-dto/update-post.dto';
+import { FindPostDto } from 'src/dto/post-dto/find-post.dto';
 
 @Controller('post')
 export class PostController {
@@ -26,6 +27,13 @@ export class PostController {
     return this.postService.getAllPosts(req);
   }
 
+  // Get Post (name) //
+  @UseGuards(UserGuard)
+  @Get('get/one')
+  getPost(@Body() findPostDto: FindPostDto, @Request() req) {
+    return this.postService.getPost(findPostDto, req);
+  }
+
   // Create post //
   @UseGuards(UserGuard)
   @Post('create')
@@ -35,9 +43,13 @@ export class PostController {
 
   // Update Post //
   @UseGuards(UserGuard)
-  @Put('update')
-  udatePost(@Body() updatePost: UpdatePostDto, @Request() req) {
-    return this.postService.updatePost(updatePost, req);
+  @Put('update/:id')
+  udatePost(
+    @Param('id') id: string,
+    @Body() updatePost: UpdatePostDto,
+    @Request() req,
+  ) {
+    return this.postService.updatePost(id, updatePost, req);
   }
 
   // Delete //

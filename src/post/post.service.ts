@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Post } from 'src/post/schema/post.schema';
 import { Model } from 'mongoose';
 import { CreatePostDto } from '../dto/post-dto/create-post.dto';
-import { User } from 'src/user/schema/user.schema';
+import { User } from 'src/shemas/user.schema';
+import { Post } from 'src/shemas/post.schema';
 import { UpdatePostDto } from 'src/dto/post-dto/update-post.dto';
-import { UserPosts } from 'src/user/schema/user-posts.schema';
+import { FindPostDto } from 'src/dto/post-dto/find-post.dto';
 
 @Injectable()
 export class PostService {
@@ -14,8 +14,6 @@ export class PostService {
     private readonly postModel: Model<Post>,
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
-    @InjectModel(UserPosts.name)
-    private readonly userPostsModel: Model<UserPosts>,
   ) {}
 
   // Get all //
@@ -23,82 +21,129 @@ export class PostService {
     return await this.postModel.find({ userId: req.user.id });
   }
 
-  // Create post //
-  async createPost(createPost: CreatePostDto, req) {
-    const findUser = await this.userModel.findById({ _id: req.user.id });
+  // Get one Post (name) //
+  async getPost(findPostDto: FindPostDto, req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
 
     if (!findUser) {
       return 'User not found!';
     }
 
-    const findPost = await this.postModel.findOne({ name: createPost.name });
+    const findPost = await this.postModel.findOne({ name: findPostDto.name });
 
-    if (findPost) {
-      return 'This name already in use';
+    if (!findPost) {
+      return 'Post is not found!';
     }
 
-    const findUserPosts = await this.userPostsModel.findOne({
+    if (findPost.userId !== findUser.id) {
+      return 'No access!';
+    }
+
+    return findPost;
+  }
+
+  // Create post //
+  async createPost(createPost: CreatePostDto, req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
+
+    if (!findUser) {
+      return 'User not found!';
+    }
+
+    const findExistPost = await this.postModel.findOne({ userId: findUser.id });
+
+    if (findExistPost.name === createPost.name) {
+      return 'This post name already in use!';
+    }
+
+    const createCard = await this.postModel.create({
       userId: findUser.id,
-    });
-
-    if (!findUserPosts) {
-      return 'Schema does not found!';
-    }
-
-    await this.postModel.create({
+      userName: findUser.name,
       name: createPost.name,
-      userId: req.user.id,
       text: createPost.text,
     });
-
-    const updateUserPosts = await this.postModel.find({ userId: findUser.id });
-
-    if (updateUserPosts.length > 0) {
-      await this.userPostsModel.findOneAndUpdate(
-        { userId: findUser.id },
-        { posts: updateUserPosts, postsValue: updateUserPosts.length },
-        { upsert: true, new: true },
-      );
-    }
 
     return {
-      name: createPost.name,
-      userId: req.user.id,
-      text: createPost.text,
+      message: 'Succsess!',
+      card: {
+        userName: createCard.userName,
+        userId: createCard.userId,
+        postName: createCard.name,
+        text: createCard.text,
+      },
     };
   }
 
   // Update post //
-  async updatePost(updatePost: UpdatePostDto, req) {
-    const findPost = await this.postModel.findOne({ userId: req.user.id });
+  async updatePost(id: string, updatePost: UpdatePostDto, req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
+
+    if (!findUser) {
+      return 'User not found!';
+    }
+
+    const findPost = await this.postModel.findOne({ _id: id });
 
     if (!findPost) {
-      return 'Post does not found!';
+      return 'Post not found!';
     }
 
-    if (findPost.text === updatePost.text) {
-      return 'Change text!';
+    if (findPost.userId !== findUser.id) {
+      return 'No access!';
     }
 
-    await this.postModel.findByIdAndUpdate(
-      { _id: findPost.id },
-      { text: updatePost.text },
-      { new: true, upsert: true },
-    );
+    if (findPost.name === updatePost?.name) {
+      return 'Make some changes!';
+    }
 
-    return `Text to: ${findPost.name}, updated!`;
+    if (findPost.text === updatePost?.text) {
+      return 'Make some changes';
+    }
+
+    if (updatePost?.name) {
+      const updateName = await this.postModel.findOneAndUpdate(
+        { _id: findPost.id },
+        { name: updatePost.name },
+        { upsert: true, new: true },
+      );
+
+      return {
+        message: 'Name succsessful update!',
+        post: updateName,
+      };
+    }
+
+    if (updatePost?.text) {
+      const updateText = await this.postModel.findOneAndUpdate(
+        { _id: findPost.id },
+        { text: updatePost.text },
+        { upsert: true, new: true },
+      );
+
+      return {
+        message: 'Text succsessful update!',
+        post: updateText,
+      };
+    }
+
+    return 'Error';
   }
 
   // Delete post //
   async deletePost(postName: string, req) {
-    const findPost = await this.postModel.findOne({ userId: req.user.id });
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
 
-    if (!findPost) {
-      return 'Posts is not found!';
+    if (!findUser) {
+      return 'User not found';
     }
 
-    await this.postModel.findOneAndDelete({ name: postName });
+    const findPost = await this.postModel.findOne({
+      userId: findUser.id,
+      name: postName,
+    });
 
-    return 'Deleted!';
+    if (!findPost) {
+      return 'Post not found!';
+    }
   }
 }

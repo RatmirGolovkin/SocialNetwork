@@ -30,13 +30,6 @@ export class UserController {
     return this.userServise.getOne(req);
   }
 
-  // Get User posts //
-  @UseGuards(UserGuard)
-  @Get('posts')
-  getUserPosts(@Request() req) {
-    return this.userServise.getUserPosts(req);
-  }
-
   // Register //
   @Post('register')
   register(@Body() registerDto: RegisterDto) {

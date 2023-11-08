@@ -16,16 +16,9 @@ export class SubController {
 
   // Get subscriptions (Подписки) //
   @UseGuards(UserGuard)
-  @Get('get/subscription')
+  @Get('get')
   getAllSubscriptions(@Request() req) {
-    return this.subService.getAllSubscriptions(req);
-  }
-
-  // Get subscribers //
-  @UseGuards(UserGuard)
-  @Get('get/subscribers')
-  getAllSubscribers(@Request() req) {
-    return this.subService.getAllSubscribers(req);
+    return this.subService.getAll(req);
   }
 
   // get subscribe //
@@ -35,10 +28,11 @@ export class SubController {
     return this.subService.subscribe(id, req);
   }
 
-  // Delete
+  // Unsubscribe
   @UseGuards(UserGuard)
-  @Put('delete/:id')
-  unsubscribe(@Param(':id') id: string, @Request() req) {
+  @Put('unsubscribe/:id')
+  unsubscribe(@Param('id') id: string, @Request() req) {
+    console.log(id);
     return this.subService.unsubscribe(id, req);
   }
 }

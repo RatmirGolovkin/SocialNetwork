@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
+import { ImageController } from './image.controller';
+import { ImageService } from './image.service';
 import { JwtModule } from '@nestjs/jwt';
 import { MongooseModule } from '@nestjs/mongoose';
+import { Subscription, Subscriber } from 'rxjs';
 import { jwtConstants } from 'src/guards/constants/constants';
-import { SubController } from './sub.controller';
-import { SubService } from './sub.service';
-import { User, userSchema } from 'src/shemas/user.schema';
 import { Post, postSchema } from 'src/shemas/post.schema';
-import {
-  Subscription,
-  subscriptionSchema,
-} from 'src/shemas/subscription.schema';
-import { Subscriber, subscriberSchema } from 'src/shemas/subscriber.schema';
+import { subscriberSchema } from 'src/shemas/subscriber.schema';
+import { subscriptionSchema } from 'src/shemas/subscription.schema';
+import { User, userSchema } from 'src/shemas/user.schema';
+import { imageSchema, Image } from 'src/shemas/image.schema';
+import { commentSchema, Comment } from 'src/shemas/comment.schema';
 
 @Module({
   imports: [
@@ -19,6 +19,8 @@ import { Subscriber, subscriberSchema } from 'src/shemas/subscriber.schema';
       { name: Post.name, schema: postSchema },
       { name: Subscription.name, schema: subscriptionSchema },
       { name: Subscriber.name, schema: subscriberSchema },
+      { name: Image.name, schema: imageSchema },
+      { name: Comment.name, schema: commentSchema },
     ]),
     JwtModule.register({
       global: true,
@@ -26,7 +28,7 @@ import { Subscriber, subscriberSchema } from 'src/shemas/subscriber.schema';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [SubService],
-  controllers: [SubController],
+  controllers: [ImageController],
+  providers: [ImageService],
 })
-export class SubModule {}
+export class ImageModule {}

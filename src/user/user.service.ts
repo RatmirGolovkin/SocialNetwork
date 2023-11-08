@@ -4,15 +4,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { RegisterDto } from '../dto/user-dto/user-register.dto';
-import { User } from './schema/user.schema';
 import { UpdatePasswordDto } from '../dto/user-dto/update-password.dto';
 import { UpdateDto } from '../dto/user-dto/update-user.dto';
 import { LoginDto } from '../dto/user-dto/user-login.dto';
-import { Post } from 'src/post/schema/post.schema';
-import { Subscription } from 'src/sub/schema/subscription.schema';
-import { UserPosts } from './schema/user-posts.schema';
-import { Subscriber } from 'src/sub/schema/subscriber.schema';
 import { UpdateEmailDto } from 'src/dto/user-dto/update-email.dto';
+import { User } from 'src/shemas/user.schema';
+import { Subscriber } from 'src/shemas/subscriber.schema';
+import { Post } from 'src/shemas/post.schema';
+import { Subscription } from 'src/shemas/subscription.schema';
 
 @Injectable()
 export class UserService {
@@ -23,8 +22,6 @@ export class UserService {
     private readonly postModule: Model<Post>,
     @InjectModel(Subscription.name)
     private readonly subscriptionModel: Model<Subscription>,
-    @InjectModel(UserPosts.name)
-    private readonly userPostsModel: Model<UserPosts>,
     @InjectModel(Subscriber.name)
     private readonly subsriberModel: Model<Subscriber>,
     private jwtService: JwtService,
@@ -48,26 +45,6 @@ export class UserService {
   }
 
   // Get user posts //
-  async getUserPosts(req) {
-    const findUser = await this.userModel.findOne({ _id: req.user.id });
-
-    if (!findUser) {
-      return 'User does not found!';
-    }
-
-    const findPost = await this.userPostsModel.findOne({ userId: findUser.id });
-
-    if (findPost.postsValue === 0) {
-      return 'This user dont have posts';
-    }
-
-    return {
-      userName: findUser.name,
-      login: findUser.login,
-      postsValue: findPost.postsValue,
-      posts: findPost.posts,
-    };
-  }
 
   // Register //
   async register(registerDto: RegisterDto) {
@@ -91,15 +68,6 @@ export class UserService {
     registerDto.password = hash;
 
     const createUser = await this.userModel.create(registerDto);
-
-    const userPosts = {
-      userName: registerDto.name,
-      userId: createUser.id,
-      postsValue: 0,
-      posts: [],
-    };
-
-    await this.userPostsModel.create(userPosts);
 
     const sub = {
       userName: createUser.name,
@@ -288,6 +256,6 @@ export class UserService {
       _id: req.user.id,
     });
 
-    return `The user: '${existedUser.login}', successfully authorized!`;
+    return `The user: '${existedUser.login}', successfully deleted!`;
   }
 }
