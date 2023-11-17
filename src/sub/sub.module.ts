@@ -6,19 +6,14 @@ import { SubController } from './sub.controller';
 import { SubService } from './sub.service';
 import { User, userSchema } from 'src/shemas/user.schema';
 import { Post, postSchema } from 'src/shemas/post.schema';
-import {
-  Subscription,
-  subscriptionSchema,
-} from 'src/shemas/subscription.schema';
-import { Subscriber, subscriberSchema } from 'src/shemas/subscriber.schema';
+import { Sub, subsSchema } from 'src/shemas/sub.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: User.name, schema: userSchema },
       { name: Post.name, schema: postSchema },
-      { name: Subscription.name, schema: subscriptionSchema },
-      { name: Subscriber.name, schema: subscriberSchema },
+      { name: Sub.name, schema: subsSchema },
     ]),
     JwtModule.register({
       global: true,

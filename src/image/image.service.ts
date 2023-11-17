@@ -36,9 +36,9 @@ export class ImageService {
       throw new Error('Image not found!');
     }
 
-    const readFile = fs.readFile(findImage.filePath, 'utf-8', () => {});
+    fs.readFile(findImage.filePath, 'utf-8', () => {});
 
-    return readFile;
+    return findImage;
   }
 
   // Upload avatar image //
@@ -82,6 +82,11 @@ export class ImageService {
     };
 
     const saveInDb = await this.imgModel.create(savePayload);
+
+    await this.userModel.findOneAndUpdate(
+      { _id: findUser.id },
+      { image: [{ imgaeId: saveInDb.id }, { imageUrl: imageUrl }] },
+    );
 
     return {
       message: 'Succsess!',

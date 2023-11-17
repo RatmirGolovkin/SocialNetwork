@@ -5,6 +5,9 @@ import { UserModule } from './user/user.module';
 import { SubModule } from './sub/sub.module';
 import { CommentModule } from './comment/comment.module';
 import { ImageModule } from './image/image.module';
+import { GroupModule } from './group/group.module';
+import { ChannelModule } from './channel/channel.module';
+import { FriendsModule } from './friend/friend.module';
 
 @Module({
   imports: [
@@ -16,6 +19,9 @@ import { ImageModule } from './image/image.module';
     SubModule,
     CommentModule,
     ImageModule,
+    GroupModule,
+    ChannelModule,
+    FriendsModule,
   ],
 })
 export class AppModule {}

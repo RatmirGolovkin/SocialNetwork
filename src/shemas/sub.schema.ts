@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 // Схема подписки
 @Schema()
-export class Subscription {
+export class Sub {
   @Prop()
   userName: string;
 
@@ -13,4 +13,4 @@ export class Subscription {
   subscription: [{ userName: string; userId: string }];
 }
 
-export const subscriptionSchema = SchemaFactory.createForClass(Subscription);
+export const subsSchema = SchemaFactory.createForClass(Sub);

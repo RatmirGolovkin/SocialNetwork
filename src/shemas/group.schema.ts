@@ -1,21 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()
-export class User {
+export class Group {
   @Prop()
   name: string;
 
   @Prop()
-  login: string;
+  adminId: string;
 
   @Prop()
-  email: string;
-
-  @Prop()
-  password: string;
+  description: string;
 
   @Prop()
   image: [{ imageId: string; imageUrl: string }];
 }
 
-export const userSchema = SchemaFactory.createForClass(User);
+export const groupSchema = SchemaFactory.createForClass(Group);

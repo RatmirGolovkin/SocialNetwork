@@ -9,9 +9,9 @@ import { UpdateDto } from '../dto/user-dto/update-user.dto';
 import { LoginDto } from '../dto/user-dto/user-login.dto';
 import { UpdateEmailDto } from 'src/dto/user-dto/update-email.dto';
 import { User } from 'src/shemas/user.schema';
-import { Subscriber } from 'src/shemas/subscriber.schema';
 import { Post } from 'src/shemas/post.schema';
-import { Subscription } from 'src/shemas/subscription.schema';
+import { Sub } from 'src/shemas/sub.schema';
+import { Friend } from 'src/shemas/friend.schema';
 
 @Injectable()
 export class UserService {
@@ -20,10 +20,10 @@ export class UserService {
     private readonly userModel: Model<User>,
     @InjectModel(Post.name)
     private readonly postModule: Model<Post>,
-    @InjectModel(Subscription.name)
-    private readonly subscriptionModel: Model<Subscription>,
-    @InjectModel(Subscriber.name)
-    private readonly subsriberModel: Model<Subscriber>,
+    @InjectModel(Sub.name)
+    private readonly subscriptionModel: Model<Sub>,
+    @InjectModel(Friend.name)
+    private readonly friendModel: Model<Friend>,
     private jwtService: JwtService,
   ) {}
 
@@ -69,29 +69,15 @@ export class UserService {
 
     const createUser = await this.userModel.create(registerDto);
 
-    const sub = {
+    const friend = {
+      userId: createUser.id,
       userName: createUser.name,
-      userId: createUser.id,
-      subscription: [],
+      friends: [],
     };
 
-    await this.subscriptionModel.create(sub);
+    await this.friendModel.create(friend);
 
-    const subscribers = {
-      userName: registerDto.name,
-      userId: createUser.id,
-      subscribers: [],
-      subscriberValue: 0,
-    };
-
-    await this.subsriberModel.create(subscribers);
-
-    const response = {
-      name: createUser.name,
-      email: createUser.email,
-    };
-
-    return response;
+    return createUser;
   }
 
   // Login //
