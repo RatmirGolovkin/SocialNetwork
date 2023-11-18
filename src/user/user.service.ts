@@ -21,7 +21,7 @@ export class UserService {
     @InjectModel(Post.name)
     private readonly postModule: Model<Post>,
     @InjectModel(Sub.name)
-    private readonly subscriptionModel: Model<Sub>,
+    private readonly subModel: Model<Sub>,
     @InjectModel(Friend.name)
     private readonly friendModel: Model<Friend>,
     private jwtService: JwtService,
@@ -76,6 +76,15 @@ export class UserService {
     };
 
     await this.friendModel.create(friend);
+
+    const sub = {
+      userName: createUser.name,
+      userId: createUser.id,
+      subChannel: [],
+      subGroup: [],
+    };
+
+    await this.subModel.create(sub);
 
     return createUser;
   }

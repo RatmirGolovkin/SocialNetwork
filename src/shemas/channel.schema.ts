@@ -12,6 +12,9 @@ export class Channel {
   description: string;
 
   @Prop()
+  members: [{ userName: string; userId: string }];
+
+  @Prop()
   image: [{ imageType: string }, { imageId: string }, { imageUrl: string }];
 }
 

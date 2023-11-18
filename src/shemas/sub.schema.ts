@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-// Схема подписки
 @Schema()
 export class Sub {
   @Prop()
@@ -10,7 +9,10 @@ export class Sub {
   userId: string;
 
   @Prop()
-  subscription: [{ userName: string; userId: string }];
+  subChannel: [{ name: string; channelId: string }];
+
+  @Prop()
+  subGroup: [{ name: string; groupId: string }];
 }
 
 export const subsSchema = SchemaFactory.createForClass(Sub);

@@ -7,6 +7,8 @@ import { SubService } from './sub.service';
 import { User, userSchema } from 'src/shemas/user.schema';
 import { Post, postSchema } from 'src/shemas/post.schema';
 import { Sub, subsSchema } from 'src/shemas/sub.schema';
+import { Channel, channelSchema } from 'src/shemas/channel.schema';
+import { Group, groupSchema } from 'src/shemas/group.schema';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { Sub, subsSchema } from 'src/shemas/sub.schema';
       { name: User.name, schema: userSchema },
       { name: Post.name, schema: postSchema },
       { name: Sub.name, schema: subsSchema },
+      { name: Channel.name, schema: channelSchema },
+      { name: Group.name, schema: groupSchema },
     ]),
     JwtModule.register({
       global: true,

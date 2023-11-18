@@ -12,6 +12,9 @@ export class Group {
   description: string;
 
   @Prop()
+  members: [{ userName: string; userId: string }];
+
+  @Prop()
   image: [{ imageId: string; imageUrl: string }];
 }
 
