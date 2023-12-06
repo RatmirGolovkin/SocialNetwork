@@ -8,6 +8,9 @@ import { ImageModule } from './image/image.module';
 import { GroupModule } from './group/group.module';
 import { ChannelModule } from './channel/channel.module';
 import { FriendsModule } from './friend/friend.module';
+import { LentModule } from './lent/lent.module';
+import { PostGroupModule } from './post-group/post-group.module';
+import { PostChannelModule } from './post-channel/post-channel.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { FriendsModule } from './friend/friend.module';
     GroupModule,
     ChannelModule,
     FriendsModule,
+    LentModule,
+    PostGroupModule,
+    PostChannelModule,
   ],
 })
 export class AppModule {}

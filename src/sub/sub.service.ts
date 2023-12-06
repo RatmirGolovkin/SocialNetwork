@@ -23,15 +23,99 @@ export class SubService {
     private readonly groupModel: Model<Group>,
   ) {}
 
-  async getUserGroup() {}
+  async getUserGroup(req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
 
-  async getUserChannel() {}
+    if (!findUser) {
+      throw new NotFoundError('User not found!');
+    }
+
+    const findUserSubs = await this.subModel.findOne({ userId: findUser.id });
+
+    if (!findUserSubs) {
+      throw new NotFoundError('User subs error');
+    }
+
+    if (findUserSubs.subGroup.length <= 0) {
+      return 'Your group list is empty!';
+    }
+
+    return {
+      user: findUser.name,
+      group: findUserSubs.subGroup,
+    };
+  }
+
+  async getUserChannel(req) {
+    const findUser = await this.userModel.findOne({ _id: req.user.id });
+
+    if (!findUser) {
+      throw new NotFoundError('User not found!');
+    }
+
+    const findUserSubs = await this.subModel.findOne({ userId: findUser.id });
+
+    if (!findUserSubs) {
+      throw new NotFoundError('User subs error!');
+    }
+
+    if (findUserSubs.subChannel.length <= 0) {
+      return 'Your channel list is empty!';
+    }
+
+    return {
+      user: findUser.name,
+      channel: findUserSubs.subChannel,
+    };
+  }
 
   // get users group
-  async getGroup() {}
+  async getGroup(userId: string) {
+    const findUser = await this.userModel.findOne({ _id: userId });
+
+    if (!findUser) {
+      throw new NotFoundError('User not found!');
+    }
+
+    const findUserSubs = await this.subModel.findOne({ userId: findUser.id });
+
+    if (!findUserSubs) {
+      throw new NotFoundError('User subs error!');
+    }
+
+    if (findUserSubs.subGroup.length <= 0) {
+      return 'This user not have any group!';
+    }
+
+    return {
+      user: findUser.name,
+      group: findUserSubs.subGroup,
+    };
+  }
 
   // get users channel
-  async getChannel() {}
+  async getChannel(userId: string) {
+    const findUser = await this.userModel.findOne({ _id: userId });
+
+    if (!findUser) {
+      throw new NotFoundError('User not found!');
+    }
+
+    const findUserSubs = await this.subModel.findOne({ userId: findUser.id });
+
+    if (!findUserSubs) {
+      throw new NotFoundError('User subs error!');
+    }
+
+    if (findUserSubs.subChannel.length <= 0) {
+      return 'This user not have any channel!';
+    }
+
+    return {
+      user: findUser.id,
+      channel: findUserSubs.subChannel,
+    };
+  }
 
   async getGroupSub(groupId: string, req) {
     const findUser = await this.userModel.findOne({ _id: req.user.id });

@@ -15,23 +15,31 @@ export class SubController {
   constructor(private readonly subService: SubService) {}
 
   @Get('get/user-group')
-  getUserGroup() {}
+  getUserGroup(@Request() req) {
+    return this.subService.getUserGroup(req);
+  }
 
   @Get('get/user-channel')
-  getUserChannel() {}
+  getUserChannel(@Request() req) {
+    return this.subService.getUserChannel(req);
+  }
 
   @Get('get/group/:userId')
-  getGroup() {}
+  getGroup(@Param('userId') userId: string) {
+    return this.subService.getGroup(userId);
+  }
 
   @Get('get/channel/:userId')
-  getChannel() {}
+  getChannel(@Param('userId') userId: string) {
+    return this.subService.getChannel(userId);
+  }
 
-  @Post('subscribe/group/:groupId')
-  getGroupSub(@Param('gruopId') groupId: string, @Request() req) {
+  @Post('group/:groupId')
+  getGroupSub(@Param('groupId') groupId: string, @Request() req) {
     return this.subService.getGroupSub(groupId, req);
   }
 
-  @Post('subscribe/channel/:channelId')
+  @Post('channel/:channelId')
   getChannelSub(@Param('channelId') channelId: string, @Request() req) {
     return this.subService.getChannelSub(channelId, req);
   }

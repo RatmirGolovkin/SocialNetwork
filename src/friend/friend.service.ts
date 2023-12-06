@@ -102,66 +102,93 @@ export class FriendService {
       throw new NotFoundError('Request not found!');
     }
 
+    if (findRequest.sander === findUser.id) {
+      throw new Error('You cant accept this request!');
+    }
+
     if (findRequest.status === 'accepted') {
-      throw new Error('This request alredy accepted!');
+      throw new Error('This request is already accepted!');
+    } else if (findRequest.status === 'declined') {
+      throw new Error('This request id already declined!');
     }
 
-    if (findRequest.receiver === findUser.id) {
-      throw new Error('Error: You cant accepted!');
+    const findFriend = await this.friendModel.findOne({ userId: findUser.id });
+
+    if (!findFriend) {
+      throw new Error('Friend schema error!');
     }
 
-    const findReceiver = await this.userModel.findOne({
-      _id: findRequest.receiver,
-    });
+    const friendArr = findFriend.friends;
 
-    const updateReqFriend = await this.friendRequestModel.findOneAndUpdate(
-      { _id: requestId },
-      { status: 'accepted' },
-      { upsert: true, new: true },
-    );
+    if (findFriend.friends.length <= 0) {
+      const findExistReceiver = friendArr.find(
+        (friendArr) => friendArr.userId === findRequest.receiver,
+      );
 
-    const sanderSchema = await this.friendModel.findOne({
-      userId: findUser.id,
-    });
+      if (findExistReceiver) {
+        throw new Error('This user already in you friend list!');
+      }
+    }
+
+    const sander = findRequest.sander;
+
+    const receiver = findRequest.receiver;
+
+    //Update friend chema
+    const sanderSchema = await this.friendModel.findOne({ userId: sander });
+
+    if (!sanderSchema) {
+      throw new Error('Sander not found!');
+    }
+
+    const receiverSchema = await this.friendModel.findOne({ userId: receiver });
+
+    if (!receiverSchema) {
+      throw new Error('Receiver not found!');
+    }
 
     const sanderArr = sanderSchema.friends;
 
     const sanderObj = {
-      userId: updateReqFriend.sander,
-      userName: findUser.name,
+      userId: receiverSchema.userId,
+      userName: receiverSchema.userName,
     };
 
     sanderArr.push(sanderObj);
 
-    const receiverSchema = await this.friendModel.findOne({
-      userId: findReceiver.id,
-    });
+    await this.friendModel.findOneAndUpdate(
+      { _id: sanderSchema.id },
+      { friends: sanderArr },
+      { upsert: true, new: true },
+    );
 
     const receiverArr = receiverSchema.friends;
 
     const receiverObj = {
-      userId: findReceiver.id,
-      userName: findReceiver.name,
+      userId: sanderSchema.userId,
+      userName: sanderSchema.userName,
     };
 
     receiverArr.push(receiverObj);
 
     await this.friendModel.findOneAndUpdate(
-      { _id: sanderSchema.id },
+      { _id: receiverSchema.id },
       { friends: receiverArr },
       { upsert: true, new: true },
     );
 
-    await this.friendModel.findOneAndUpdate(
-      { _id: receiverSchema.id },
-      { friends: sanderArr },
+    await this.friendRequestModel.findOneAndUpdate(
+      { _id: findRequest.id },
+      { status: 'accepted' },
       { upsert: true, new: true },
     );
 
     return {
-      message: 'Succsesful accepted!',
-      sander: findUser.id,
-      status: 'accepted',
+      message: 'Succsess!',
+      friends: {
+        sander: receiverObj,
+        receiver: sanderObj,
+      },
     };
   }
 

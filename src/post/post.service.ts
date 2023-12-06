@@ -52,7 +52,7 @@ export class PostService {
 
     const findExistPost = await this.postModel.findOne({ userId: findUser.id });
 
-    if (findExistPost.name === createPost.name) {
+    if (findExistPost?.name === createPost.name) {
       return 'This post name already in use!';
     }
 
